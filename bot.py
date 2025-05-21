@@ -1,24 +1,41 @@
 import discord
 import os
-from keep_alive import keep_alive
+import re
 from dotenv import load_dotenv
+from keep_alive import keep_alive
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
-print(f"Bot Token: {TOKEN}")  # Debug: Check if token is correct
-
 intents = discord.Intents.default()
-intents.message_content = True  # Ensure we can read message content
+intents.message_content = True
+intents.reactions = True
 
 client = discord.Client(intents=intents)
 
+# Map words/symbols to operations and emojis
+OPERATIONS = {
+    '+': ('add', '➕'),
+    'add': ('add', '➕'),
+    '-': ('subtract', '➖'),
+    'subtract': ('subtract', '➖'),
+    '*': ('multiply', '✖️'),
+    'x': ('multiply', '✖️'),
+    'multiply': ('multiply', '✖️'),
+    '/': ('divide', '➗'),
+    'divide': ('divide', '➗'),
+    '÷': ('divide', '➗'),
+}
+
 @client.event
 async def on_ready():
-    print(f'✅ Logged in as {client.user}')  # Confirm login
+    print(f"✅ Logged in as {client.user}")
 
 @client.event
 async def on_message(message):
+    if message.author == client.user:
+        return
+    
     print(f"Received message: {message.content}")  # Debug: Log the received message
     if message.author == client.user:
         return
@@ -31,9 +48,49 @@ async def on_message(message):
         print("Pong response triggered!")  # Debug: Check if ping condition is met
         await message.channel.send('hello there!')
 
-@client.event
-async def on_error(event, *args, **kwargs):
-    print(f"Error occurred: {event}, {args}, {kwargs}")  # Catch and print errors
+    content = message.content.lower()
+
+    # Try to find an arithmetic expression
+    match = re.search(r'(-?\d+(?:\.\d+)?)\s*([+/*x\-]|add|subtract|divide|multiply)\s*(-?\d+(?:\.\d+)?)', content)
+    if not match:
+        return
+
+    num1, op_raw, num2 = match.groups()
+    num1, num2 = float(num1), float(num2)
+
+    operation = OPERATIONS.get(op_raw.strip())
+    if not operation:
+        return
+
+    op_name, emoji = operation
+
+    await message.add_reaction(emoji)
+
+    def check(reaction, user):
+        return (
+            user == message.author and
+            str(reaction.emoji) == emoji and
+            reaction.message.id == message.id
+        )
+
+    try:
+        reaction, user = await client.wait_for('reaction_add', timeout=30.0, check=check)
+        result = None
+        if op_name == 'add':
+            result = num1 + num2
+        elif op_name == 'subtract':
+            result = num1 - num2
+        elif op_name == 'multiply':
+            result = num1 * num2
+        elif op_name == 'divide':
+            if num2 == 0:
+                result = "❌ Cannot divide by zero!"
+            else:
+                result = num1 / num2
+
+        await message.channel.send(f"🧮 Result: `{num1} {op_raw} {num2} = {result}`")
+    except Exception as e:
+        print("⏱️ Reaction timeout or error:", e)
 
 keep_alive()
 client.run(TOKEN)
