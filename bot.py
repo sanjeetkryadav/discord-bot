@@ -16,9 +16,6 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 # Slash command tree
 tree = bot.tree
 
-client = discord.Client(intents=intents)
-
-# Map words/symbols to operations and emojis
 OPERATIONS = {
     '+': ('add', '➕'),
     'add': ('add', '➕'),
@@ -28,34 +25,28 @@ OPERATIONS = {
     'x': ('multiply', '✖️'),
     'multiply': ('multiply', '✖️'),
     '/': ('divide', '➗'),
-    'divide': ('divide', '➗'),
     '÷': ('divide', '➗'),
+    'divide': ('divide', '➗'),
 }
 
-@client.event
+
+@bot.event
 async def on_ready():
-    print(f"✅ Logged in as {client.user}")
+    print(f"✅ Logged in as {bot.user}")
+    try:
+        synced = await tree.sync()
+        print(f"✅ Synced {len(synced)} slash commands.")
+    except Exception as e:
+        print(f"❌ Failed to sync commands: {e}")
 
-@client.event
+
+@bot.event
 async def on_message(message):
-    if message.author == client.user:
+    if message.author == bot.user:
         return
-    
-    print(f"Received message: {message.content}")  # Debug: Log the received message
-    if message.author == client.user:
-        return
-
-    if message.content.lower() == 'ping':
-        print("Pong response triggered!")  # Debug: Check if ping condition is met
-        await message.channel.send('pong!')
-
-    if message.content.lower() == 'hello':
-        print("Pong response triggered!")  # Debug: Check if ping condition is met
-        await message.channel.send('hello there!')
 
     content = message.content.lower()
 
-    # Try to find an arithmetic expression
     match = re.search(r'(-?\d+(?:\.\d+)?)\s*([+/*x\-]|add|subtract|divide|multiply)\s*(-?\d+(?:\.\d+)?)', content)
     if not match:
         return
@@ -79,7 +70,7 @@ async def on_message(message):
         )
 
     try:
-        reaction, user = await client.wait_for('reaction_add', timeout=30.0, check=check)
+        reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
         result = None
         if op_name == 'add':
             result = num1 + num2
@@ -96,6 +87,7 @@ async def on_message(message):
         await message.channel.send(f"🧮 Result: `{num1} {op_raw} {num2} = {result}`")
     except Exception as e:
         print("⏱️ Reaction timeout or error:", e)
+
 
 # ✅ Slash command: /math
 @tree.command(name="math", description="Solve a math expression like 5+2 or 10 divide 2")
@@ -131,6 +123,5 @@ async def math_command(interaction: discord.Interaction, expression: str):
     await interaction.followup.send(f"{emoji} `{num1} {op_raw} {num2} = {result}`")
 
 
-
 keep_alive()
-client.run(TOKEN)
+bot.run(TOKEN)
