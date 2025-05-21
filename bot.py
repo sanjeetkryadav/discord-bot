@@ -4,6 +4,7 @@ import re
 from dotenv import load_dotenv
 from keep_alive import keep_alive
 from discord.ext import commands
+import discord.app_commands
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -16,9 +17,9 @@ intents.guilds = True
 intents.dm_messages = True
 intents.reactions = True
 
-bot = commands.Bot(command_prefix="!", intents=intents)
-# Slash command tree
-tree = bot.tree
+bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
+#slash cmd tree
+tree = discord.app_commands.CommandTree(bot)
 
 OPERATIONS = {
     '+': ('add', '➕'),
