@@ -8,8 +8,12 @@ from discord.ext import commands
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
 
+# ✅ Full intents
 intents = discord.Intents.default()
 intents.message_content = True
+intents.messages = True
+intents.guilds = True
+intents.dm_messages = True
 intents.reactions = True
 
 bot = commands.Bot(command_prefix="!", intents=intents)
