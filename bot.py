@@ -27,6 +27,10 @@ async def on_message(message):
         print("Pong response triggered!")  # Debug: Check if ping condition is met
         await message.channel.send('pong!')
 
+    if message.content.lower() == 'hello':
+        print("Pong response triggered!")  # Debug: Check if ping condition is met
+        await message.channel.send('hello there!')
+
 @client.event
 async def on_error(event, *args, **kwargs):
     print(f"Error occurred: {event}, {args}, {kwargs}")  # Catch and print errors
