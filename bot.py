@@ -143,6 +143,7 @@ async def math_command(interaction: discord.Interaction, expression: str):
 
     await interaction.followup.send(format_result(num1, num2, result, op_raw))
 
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @tree.command(name="random", description="Generate a random number between two values")
 async def random_command(interaction: discord.Interaction, min_value: int, max_value: int):
     if min_value >= max_value:
@@ -152,6 +153,8 @@ async def random_command(interaction: discord.Interaction, min_value: int, max_v
     number = random.randint(min_value, max_value)
     await interaction.response.send_message(f"🎲 Random number between {min_value} and {max_value}: `{number}`")
 
+
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @tree.command(name="remind", description="Set a reminder (time in minutes)")
 async def remind_command(interaction: discord.Interaction, minutes: int, reminder: str):
     if minutes <= 0:
@@ -180,6 +183,8 @@ async def remind_command(interaction: discord.Interaction, minutes: int, reminde
             await channel.send(f"⏰ <@{interaction.user.id}> Reminder: {reminder}")
         del reminders[reminder_id]
 
+
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @tree.command(name="translate", description="Translate text to another language")
 async def translate_command(interaction: discord.Interaction, text: str, target_language: str = "en"):
     await interaction.response.defer()
@@ -196,11 +201,13 @@ async def translate_command(interaction: discord.Interaction, text: str, target_
     except Exception as e:
         await interaction.followup.send(f"❌ Translation failed: {str(e)}")
 
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @tree.command(name="flip", description="Flip a coin")
 async def flip_command(interaction: discord.Interaction):
     result = random.choice(["Heads", "Tails"])
     await interaction.response.send_message(f"🪙 The coin landed on: `{result}`")
 
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
 @tree.command(name="roll", description="Roll dice (e.g., 2d6 for two six-sided dice)")
 async def roll_command(interaction: discord.Interaction, dice: str):
     try:
