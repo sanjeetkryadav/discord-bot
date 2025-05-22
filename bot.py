@@ -95,14 +95,10 @@ async def on_message(message):
 
 
 # ✅ Slash command: /math
-@tree.command(
-    name="math",
-    description="Solve a math expression like 5+2 or 10 divide 2",
-    extras={
-        "integration_types": [0, 1],
-        "contexts": [0, 1, 2]
-    }
-)
+
+@discord.app_commands.allowed_installs(guilds=True, users=True)
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@tree.command(name="math",description="Solve a math expression like 5+2 or 10 divide 2")
 async def math_command(interaction: discord.Interaction, expression: str):
     await interaction.response.defer()
     match = re.search(r'(-?\d+(?:\.\d+)?)\s*([+/*x\-]|add|subtract|divide|multiply)\s*(-?\d+(?:\.\d+)?)', expression.lower())
