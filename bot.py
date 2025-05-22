@@ -34,6 +34,16 @@ OPERATIONS = {
     'divide': ('divide', '➗'),
 }
 
+def format_result(num1, num2, result, op_raw):
+    # Check if both inputs are integers
+    is_int_input = num1.is_integer() and num2.is_integer()
+    
+    # Format the result based on whether it's an integer and inputs were integers
+    if isinstance(result, (int, float)):
+        if result.is_integer() and is_int_input:
+            result = int(result)
+        return f"🧮 Result: `{int(num1) if num1.is_integer() else num1} {op_raw} {int(num2) if num2.is_integer() else num2} = {result}`"
+    return f"🧮 Result: `{num1} {op_raw} {num2} = {result}`"
 
 @bot.event
 async def on_ready():
@@ -43,7 +53,6 @@ async def on_ready():
         print(f"✅ Synced {len(synced)} slash commands.")
     except Exception as e:
         print(f"❌ Failed to sync commands: {e}")
-
 
 @bot.event
 async def on_message(message):
@@ -89,12 +98,9 @@ async def on_message(message):
             else:
                 result = num1 / num2
 
-        await message.channel.send(f"🧮 Result: `{num1} {op_raw} {num2} = {result}`")
+        await message.channel.send(format_result(num1, num2, result, op_raw))
     except Exception as e:
         print("⏱️ Reaction timeout or error:", e)
-
-
-# ✅ Slash command: /math
 
 @discord.app_commands.allowed_installs(guilds=True, users=True)
 @discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
@@ -128,8 +134,7 @@ async def math_command(interaction: discord.Interaction, expression: str):
         else:
             result = num1 / num2
 
-    await interaction.followup.send(f"{emoji} `{num1} {op_raw} {num2} = {result}`")
-
+    await interaction.followup.send(format_result(num1, num2, result, op_raw))
 
 keep_alive()
 bot.run(TOKEN)
