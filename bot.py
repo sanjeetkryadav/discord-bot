@@ -19,7 +19,8 @@ intents.reactions = True
 
 bot = commands.Bot(command_prefix="!", intents=discord.Intents.all())
 #slash cmd tree
-tree = discord.app_commands.CommandTree(bot)
+tree = bot.tree
+
 
 OPERATIONS = {
     '+': ('add', '➕'),
