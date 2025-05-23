@@ -33,15 +33,19 @@ reminders = {}
 # Timezone settings
 IST = timezone('Asia/Kolkata')
 
+def get_ist_time():
+    """Get current time in IST"""
+    return datetime.now(IST)
+
 def format_datetime(dt_str):
-    """Convert UTC datetime string to IST and format it"""
+    """Convert datetime string to IST and format it"""
     try:
         # Parse the datetime string
         dt = datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
-        # Convert to IST
-        ist_dt = dt.astimezone(IST)
+        # Make it timezone aware
+        dt = IST.localize(dt)
         # Format as "DD/MM/YYYY HH:MM"
-        return ist_dt.strftime('%d/%m/%Y %H:%M')
+        return dt.strftime('%d/%m/%Y %H:%M')
     except:
         return dt_str
 
@@ -309,7 +313,7 @@ async def note_command(interaction: discord.Interaction, title: str, content: st
         c = conn.cursor()
         
         # Get current time in IST
-        current_time = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
+        current_time = get_ist_time().strftime('%Y-%m-%d %H:%M:%S')
         
         # Insert the note
         c.execute(
