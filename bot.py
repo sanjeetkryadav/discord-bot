@@ -315,20 +315,33 @@ async def note_command(interaction: discord.Interaction, title: str, content: st
         # Get current time in IST
         current_time = get_ist_time().strftime('%Y-%m-%d %H:%M:%S')
         
-        # Insert the note
+        # Find the lowest available ID
+        c.execute('SELECT id FROM notes ORDER BY id')
+        existing_ids = [row[0] for row in c.fetchall()]
+        
+        # Find the first gap in IDs, or use 1 if no notes exist
+        note_id = 1
+        for existing_id in existing_ids:
+            if existing_id != note_id:
+                break
+            note_id += 1
+        
+        # Insert the note with the specific ID
         c.execute(
-            'INSERT INTO notes (user_id, title, content, created_at) VALUES (?, ?, ?, ?)',
-            (interaction.user.id, title, content, current_time)
+            'INSERT INTO notes (id, user_id, title, content, created_at) VALUES (?, ?, ?, ?, ?)',
+            (note_id, interaction.user.id, title, content, current_time)
         )
         
         conn.commit()
-        note_id = c.lastrowid
+        
+        # Format the time for display
+        display_time = format_datetime(current_time)
         
         await interaction.response.send_message(
             f"📝 Note saved successfully!\n"
             f"Title: `{title}`\n"
             f"ID: `{note_id}`\n"
-            f"Created: `{format_datetime(current_time)}`"
+            f"Created: `{display_time}`"
         )
         
     except Exception as e:
