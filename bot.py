@@ -54,14 +54,18 @@ def init_db():
     conn = sqlite3.connect('bot_data.db')
     c = conn.cursor()
     
-    # Create notes table if it doesn't exist
+    # Drop the existing table to recreate it with the new structure
+    c.execute('DROP TABLE IF EXISTS notes')
+    
+    # Create notes table with a composite unique constraint
     c.execute('''
         CREATE TABLE IF NOT EXISTS notes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER NOT NULL,
             user_id INTEGER NOT NULL,
             title TEXT NOT NULL,
             content TEXT NOT NULL,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            PRIMARY KEY (id, user_id)
         )
     ''')
     
