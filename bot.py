@@ -3,6 +3,7 @@ import os
 import re
 import random
 import asyncio
+import sqlite3
 from datetime import datetime, timedelta
 from dotenv import load_dotenv
 from keep_alive import keep_alive
@@ -28,6 +29,36 @@ tree = bot.tree
 # Store reminders
 reminders = {}
 
+# Initialize SQLite database
+def init_db():
+    conn = sqlite3.connect('bot_data.db')
+    c = conn.cursor()
+    
+    # Create notes table if it doesn't exist
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS notes (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    ''')
+    
+    conn.commit()
+    conn.close()
+
+# Initialize database when bot starts
+@bot.event
+async def on_ready():
+    print(f"✅ Logged in as {bot.user}")
+    init_db()
+    try:
+        synced = await tree.sync()
+        print(f"✅ Synced {len(synced)} slash commands.")
+    except Exception as e:
+        print(f"❌ Failed to sync commands: {e}")
+
 OPERATIONS = {
     '+': ('add', '➕'),
     'add': ('add', '➕'),
@@ -51,15 +82,6 @@ def format_result(num1, num2, result, op_raw):
             result = int(result)
         return f"🧮 Result: `{int(num1) if num1.is_integer() else num1} {op_raw} {int(num2) if num2.is_integer() else num2} = {result}`"
     return f"🧮 Result: `{num1} {op_raw} {num2} = {result}`"
-
-@bot.event
-async def on_ready():
-    print(f"✅ Logged in as {bot.user}")
-    try:
-        synced = await tree.sync()
-        print(f"✅ Synced {len(synced)} slash commands.")
-    except Exception as e:
-        print(f"❌ Failed to sync commands: {e}")
 
 @bot.event
 async def on_message(message):
@@ -263,6 +285,118 @@ async def roll_command(interaction: discord.Interaction, dice: str):
         await interaction.response.send_message(
             "❌ Invalid dice notation! Use format like '2d6' for two six-sided dice."
         )
+
+@tree.command(name="note", description="Store a note with a title and content")
+async def note_command(interaction: discord.Interaction, title: str, content: str):
+    try:
+        conn = sqlite3.connect('bot_data.db')
+        c = conn.cursor()
+        
+        # Insert the note
+        c.execute(
+            'INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)',
+            (interaction.user.id, title, content)
+        )
+        
+        conn.commit()
+        note_id = c.lastrowid
+        
+        await interaction.response.send_message(
+            f"📝 Note saved successfully!\n"
+            f"Title: `{title}`\n"
+            f"ID: `{note_id}`"
+        )
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Failed to save note: {str(e)}")
+    finally:
+        conn.close()
+
+@tree.command(name="notes", description="List all your notes")
+async def notes_command(interaction: discord.Interaction):
+    try:
+        conn = sqlite3.connect('bot_data.db')
+        c = conn.cursor()
+        
+        # Get all notes for the user
+        c.execute(
+            'SELECT id, title, created_at FROM notes WHERE user_id = ? ORDER BY created_at DESC',
+            (interaction.user.id,)
+        )
+        
+        notes = c.fetchall()
+        
+        if not notes:
+            await interaction.response.send_message("📝 You don't have any notes yet!")
+            return
+        
+        # Format the notes list
+        notes_list = "📝 Your Notes:\n"
+        for note_id, title, created_at in notes:
+            notes_list += f"ID: `{note_id}` | Title: `{title}` | Created: {created_at}\n"
+        
+        await interaction.response.send_message(notes_list)
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Failed to fetch notes: {str(e)}")
+    finally:
+        conn.close()
+
+@tree.command(name="viewnote", description="View a specific note by ID")
+async def viewnote_command(interaction: discord.Interaction, note_id: int):
+    try:
+        conn = sqlite3.connect('bot_data.db')
+        c = conn.cursor()
+        
+        # Get the specific note
+        c.execute(
+            'SELECT title, content, created_at FROM notes WHERE id = ? AND user_id = ?',
+            (note_id, interaction.user.id)
+        )
+        
+        note = c.fetchone()
+        
+        if not note:
+            await interaction.response.send_message("❌ Note not found or you don't have permission to view it!")
+            return
+        
+        title, content, created_at = note
+        
+        await interaction.response.send_message(
+            f"📝 Note Details:\n"
+            f"Title: `{title}`\n"
+            f"Content: `{content}`\n"
+            f"Created: {created_at}"
+        )
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Failed to fetch note: {str(e)}")
+    finally:
+        conn.close()
+
+@tree.command(name="deletenote", description="Delete a note by ID")
+async def deletenote_command(interaction: discord.Interaction, note_id: int):
+    try:
+        conn = sqlite3.connect('bot_data.db')
+        c = conn.cursor()
+        
+        # Delete the note
+        c.execute(
+            'DELETE FROM notes WHERE id = ? AND user_id = ?',
+            (note_id, interaction.user.id)
+        )
+        
+        if c.rowcount == 0:
+            await interaction.response.send_message("❌ Note not found or you don't have permission to delete it!")
+            return
+        
+        conn.commit()
+        await interaction.response.send_message(f"🗑️ Note `{note_id}` has been deleted!")
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Failed to delete note: {str(e)}")
+    finally:
+        conn.close()
 
 keep_alive()
 bot.run(TOKEN)
