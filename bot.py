@@ -10,6 +10,7 @@ from keep_alive import keep_alive
 from discord.ext import commands
 import discord.app_commands
 from googletrans import Translator
+from pytz import timezone
 
 load_dotenv()
 TOKEN = os.getenv("DISCORD_TOKEN")
@@ -28,6 +29,21 @@ tree = bot.tree
 
 # Store reminders
 reminders = {}
+
+# Timezone settings
+IST = timezone('Asia/Kolkata')
+
+def format_datetime(dt_str):
+    """Convert UTC datetime string to IST and format it"""
+    try:
+        # Parse the datetime string
+        dt = datetime.strptime(dt_str, '%Y-%m-%d %H:%M:%S')
+        # Convert to IST
+        ist_dt = dt.astimezone(IST)
+        # Format as "DD/MM/YYYY HH:MM"
+        return ist_dt.strftime('%d/%m/%Y %H:%M')
+    except:
+        return dt_str
 
 # Initialize SQLite database
 def init_db():
@@ -292,10 +308,13 @@ async def note_command(interaction: discord.Interaction, title: str, content: st
         conn = sqlite3.connect('bot_data.db')
         c = conn.cursor()
         
+        # Get current time in IST
+        current_time = datetime.now(IST).strftime('%Y-%m-%d %H:%M:%S')
+        
         # Insert the note
         c.execute(
-            'INSERT INTO notes (user_id, title, content) VALUES (?, ?, ?)',
-            (interaction.user.id, title, content)
+            'INSERT INTO notes (user_id, title, content, created_at) VALUES (?, ?, ?, ?)',
+            (interaction.user.id, title, content, current_time)
         )
         
         conn.commit()
@@ -304,7 +323,8 @@ async def note_command(interaction: discord.Interaction, title: str, content: st
         await interaction.response.send_message(
             f"📝 Note saved successfully!\n"
             f"Title: `{title}`\n"
-            f"ID: `{note_id}`"
+            f"ID: `{note_id}`\n"
+            f"Created: `{format_datetime(current_time)}`"
         )
         
     except Exception as e:
@@ -333,7 +353,8 @@ async def notes_command(interaction: discord.Interaction):
         # Format the notes list
         notes_list = "📝 Your Notes:\n"
         for note_id, title, created_at in notes:
-            notes_list += f"ID: `{note_id}` | Title: `{title}` | Created: {created_at}\n"
+            formatted_time = format_datetime(created_at)
+            notes_list += f"ID: `{note_id}` | Title: `{title}` | Created: {formatted_time}\n"
         
         await interaction.response.send_message(notes_list)
         
@@ -361,12 +382,13 @@ async def viewnote_command(interaction: discord.Interaction, note_id: int):
             return
         
         title, content, created_at = note
+        formatted_time = format_datetime(created_at)
         
         await interaction.response.send_message(
             f"📝 Note Details:\n"
             f"Title: `{title}`\n"
             f"Content: `{content}`\n"
-            f"Created: {created_at}"
+            f"Created: {formatted_time}"
         )
         
     except Exception as e:
