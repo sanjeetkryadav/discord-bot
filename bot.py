@@ -161,26 +161,47 @@ async def remind_command(interaction: discord.Interaction, minutes: int, reminde
         await interaction.response.send_message("❌ Please provide a positive number of minutes!")
         return
     
+    # Try to create DM channel with user
+    try:
+        dm_channel = await interaction.user.create_dm()
+    except discord.Forbidden:
+        await interaction.response.send_message("❌ I cannot send you DMs! Please enable DMs from server members.")
+        return
+    except Exception as e:
+        await interaction.response.send_message("❌ Failed to create DM channel. Please try again later.")
+        return
+    
     reminder_time = datetime.now() + timedelta(minutes=minutes)
     reminder_id = f"{interaction.user.id}_{reminder_time.timestamp()}"
     
     reminders[reminder_id] = {
         "user_id": interaction.user.id,
-        "channel_id": interaction.channel_id,
+        "dm_channel": dm_channel,
         "reminder": reminder,
         "time": reminder_time
     }
     
     await interaction.response.send_message(
-        f"⏰ I'll remind you in {minutes} minutes about: {reminder}"
+        f"⏰ I'll remind you in {minutes} minutes about: {reminder}\n"
+        f"📬 The reminder will be sent to your DMs!"
     )
     
     await asyncio.sleep(minutes * 60)
     
     if reminder_id in reminders:
-        channel = bot.get_channel(reminders[reminder_id]["channel_id"])
-        if channel:
-            await channel.send(f"⏰ <@{interaction.user.id}> Reminder: {reminder}")
+        try:
+            await reminders[reminder_id]["dm_channel"].send(
+                f"⏰ Reminder: {reminder}\n"
+                f"⏰ Set {minutes} minutes ago"
+            )
+        except Exception as e:
+            # If DM fails, try to notify in the original channel
+            try:
+                await interaction.channel.send(
+                    f"❌ <@{interaction.user.id}> I couldn't send you a DM for your reminder: {reminder}"
+                )
+            except:
+                pass  # If both DM and channel message fail, silently fail
         del reminders[reminder_id]
 
 
