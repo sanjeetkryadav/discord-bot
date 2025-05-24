@@ -228,17 +228,16 @@ async def remind_command(interaction: discord.Interaction, minutes: int, reminde
     }
     
     await interaction.response.send_message(
-        f"⏰ I'll remind you in {minutes} minutes about: {reminder}\n"
-        f"📬 The reminder will be sent to your DMs!"
-    )
+        f"🔔You'll be reminded in {minutes} mins: **{reminder}**"
+         )
     
     await asyncio.sleep(minutes * 60)
     
     if reminder_id in reminders:
         try:
             await reminders[reminder_id]["dm_channel"].send(
-                f"⏰ Reminder: {reminder}\n"
-                f"⏰ Set {minutes} minutes ago"
+                f"📝 **Reminder:** __**{reminder}**__"
+
             )
         except Exception as e:
             # If DM fails, try to notify in the original channel
