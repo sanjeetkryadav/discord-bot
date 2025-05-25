@@ -109,7 +109,7 @@ def format_result(num1, num2, result, op_raw):
 
 @bot.event
 async def on_message(message):
-    if message.author == bot.user:
+    if message.author.bot:
         return
 
     content = message.content.lower()
