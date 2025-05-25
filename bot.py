@@ -440,5 +440,36 @@ async def deletenote_command(interaction: discord.Interaction, note_id: int):
     finally:
         conn.close()
 
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@tree.command(name="myreminders", description="List all your active reminders")
+async def myreminders_command(interaction: discord.Interaction):
+    try:
+        # Filter reminders for this user
+        user_reminders = [
+            (reminder_id, reminder_data)
+            for reminder_id, reminder_data in reminders.items()
+            if reminder_data["user_id"] == interaction.user.id
+        ]
+        
+        if not user_reminders:
+            await interaction.response.send_message("⏰ You don't have any active reminders!", ephemeral=True)
+            return
+        
+        # Format the reminders list
+        reminders_list = "⏰ Your Active Reminders:\n"
+        for reminder_id, reminder_data in user_reminders:
+            time_left = reminder_data["time"] - datetime.now()
+            minutes_left = int(time_left.total_seconds() / 60)
+            
+            reminders_list += (
+                f"• Reminder: `{reminder_data['reminder']}`\n"
+                f"  Time left: `{minutes_left} minutes`\n"
+            )
+        
+        await interaction.response.send_message(reminders_list, ephemeral=True)
+        
+    except Exception as e:
+        await interaction.response.send_message(f"❌ Failed to fetch reminders: {str(e)}", ephemeral=True)
+
 keep_alive()
 bot.run(TOKEN)
