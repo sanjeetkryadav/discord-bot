@@ -38,6 +38,7 @@ A versatile Discord bot that provides mathematical calculations, note-taking cap
 ### Utility Commands
 - `/random [min_value] [max_value]` - Generate a random number between two values
 - `/remind [minutes] [reminder]` - Set a reminder (sent to DMs)
+- `/myreminders` - To view active reminders
 - `/translate [text] [target_language]` - Translate text to another language
 - `/flip` - Flip a coin
 - `/roll [dice]` - Roll dice (e.g., "2d6" for two six-sided dice)

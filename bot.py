@@ -236,7 +236,7 @@ async def remind_command(interaction: discord.Interaction, minutes: int, reminde
     if reminder_id in reminders:
         try:
             await reminders[reminder_id]["dm_channel"].send(
-                f"📝 **Reminder:** __**{reminder}**__"
+                f"📝 **Reminder:** **{reminder}**"
 
             )
         except Exception as e:
