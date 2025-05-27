@@ -158,6 +158,20 @@ def create_help_embed():
     embed.set_footer(text="Use /help for slash commands or !help for prefix commands")
     return embed
 
+def calculate_math(num1, num2, op_name):
+    """Calculate the result of a math operation"""
+    if op_name == 'add':
+        return num1 + num2
+    elif op_name == 'subtract':
+        return num1 - num2
+    elif op_name == 'multiply':
+        return num1 * num2
+    elif op_name == 'divide':
+        if num2 == 0:
+            return "❌ Cannot divide by zero!"
+        return num1 / num2
+    return None
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
@@ -241,7 +255,7 @@ async def on_message(message):
                 password = ''.join(password_list)
 
             # Send password in a code block
-            await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```")
+            await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```", ephemeral=True)
             
             # Delete the original command message for security
             await message.delete()
@@ -277,19 +291,7 @@ async def on_message(message):
 
     try:
         reaction, user = await bot.wait_for('reaction_add', timeout=30.0, check=check)
-        result = None
-        if op_name == 'add':
-            result = num1 + num2
-        elif op_name == 'subtract':
-            result = num1 - num2
-        elif op_name == 'multiply':
-            result = num1 * num2
-        elif op_name == 'divide':
-            if num2 == 0:
-                result = "❌ Cannot divide by zero!"
-            else:
-                result = num1 / num2
-
+        result = calculate_math(num1, num2, op_name)
         await message.channel.send(format_result(num1, num2, result, op_raw))
     except Exception as e:
         print("⏱️ Reaction timeout or error:", e)
@@ -313,19 +315,7 @@ async def math_command(interaction: discord.Interaction, expression: str):
         return
 
     op_name, emoji = operation
-
-    if op_name == 'add':
-        result = num1 + num2
-    elif op_name == 'subtract':
-        result = num1 - num2
-    elif op_name == 'multiply':
-        result = num1 * num2
-    elif op_name == 'divide':
-        if num2 == 0:
-            result = "❌ Cannot divide by zero!"
-        else:
-            result = num1 / num2
-
+    result = calculate_math(num1, num2, op_name)
     await interaction.followup.send(format_result(num1, num2, result, op_raw))
 
 @discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
