@@ -255,7 +255,7 @@ async def on_message(message):
                 password = ''.join(password_list)
 
             # Send password in a code block
-            await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```", ephemeral=True)
+            await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```")
             
             # Delete the original command message for security
             await message.delete()
