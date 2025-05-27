@@ -207,13 +207,38 @@ async def on_message(message):
             # Generate password
             password = ''.join(random.choice(chars) for _ in range(length))
             
-            # Ensure password meets requirements
+            # Ensure password meets requirements by adding required characters if missing
+            required_chars = []
             if use_uppercase and not any(c.isupper() for c in password):
-                password = password[:-1] + random.choice(uppercase)
+                required_chars.append(random.choice(uppercase))
             if use_numbers and not any(c.isdigit() for c in password):
-                password = password[:-1] + random.choice(numbers)
+                required_chars.append(random.choice(numbers))
             if use_symbols and not any(c in symbols for c in password):
-                password = password[:-1] + random.choice(symbols)
+                required_chars.append(random.choice(symbols))
+            
+            # If we need to add required characters, replace random positions
+            if required_chars:
+                # Convert password to list for easier manipulation
+                password_list = list(password)
+                # Replace random positions with required characters
+                for char in required_chars:
+                    # Find a position that won't break other requirements
+                    while True:
+                        pos = random.randint(0, len(password_list) - 1)
+                        # Check if replacing this position won't break any requirements
+                        temp_password = password_list.copy()
+                        temp_password[pos] = char
+                        temp_password_str = ''.join(temp_password)
+                        
+                        # Verify all requirements are still met
+                        if (not use_uppercase or any(c.isupper() for c in temp_password_str)) and \
+                           (not use_numbers or any(c.isdigit() for c in temp_password_str)) and \
+                           (not use_symbols or any(c in symbols for c in temp_password_str)) and \
+                           any(c.islower() for c in temp_password_str):
+                            password_list[pos] = char
+                            break
+                
+                password = ''.join(password_list)
 
             # Send password in a code block
             await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```")
