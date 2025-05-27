@@ -16,11 +16,12 @@ A versatile Discord bot with various utility commands including math operations,
   - View specific notes with `/viewnote`
   - Delete notes with `/deletenote`
 - **Password Generator**: Generate secure random passwords using `!password`
+- **Help System**: View all available commands using `/help` or `!help`
 
 ## Command Types
 
 ### Slash Commands
-All commands except `!password` are implemented as slash commands for better user experience and Discord integration.
+All commands except `!password` and `!help` are implemented as slash commands for better user experience and Discord integration.
 
 ### Prefix Commands
 - `!password [length]` - Generate a secure random password
@@ -33,6 +34,11 @@ All commands except `!password` are implemented as slash commands for better use
   - Usage:
     - `!password` - Generate a 12-character password
     - `!password 16` - Generate a 16-character password
+- `!help` - Display all available commands in an organized embed
+  - Shows all slash commands and prefix commands
+  - Includes brief descriptions for each command
+  - Organized by command type
+  - Also available as `/help` slash command
 
 ## Setup
 

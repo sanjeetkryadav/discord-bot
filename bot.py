@@ -55,7 +55,7 @@ def init_db():
     c = conn.cursor()
     
     # Drop the existing table to recreate it with the new structure
-    c.execute('DROP TABLE IF EXISTS notes')
+    #c.execute('DROP TABLE IF EXISTS notes')
     
     # Create notes table with a composite unique constraint
     c.execute('''
@@ -107,9 +107,65 @@ def format_result(num1, num2, result, op_raw):
         return f"🧮 Result: `{int(num1) if num1.is_integer() else num1} {op_raw} {int(num2) if num2.is_integer() else num2} = {result}`"
     return f"🧮 Result: `{num1} {op_raw} {num2} = {result}`"
 
+def create_help_embed():
+    """Create and return the help embed with all commands"""
+    embed = discord.Embed(
+        title="🤖 Bot Commands",
+        description="Here are all the available commands:",
+        color=discord.Color.blue()
+    )
+
+    # Slash Commands
+    embed.add_field(
+        name="📝 Slash Commands",
+        value=(
+            "`/math` - Solve math expressions\n"
+            "`/random` - Generate random number\n"
+            "`/remind` - Set a reminder\n"
+            "`/myreminders` - View active reminders\n"
+            "`/translate` - Translate text\n"
+            "`/flip` - Flip a coin\n"
+            "`/roll` - Roll dice\n"
+            "`/note` - Create a note\n"
+            "`/notes` - List your notes\n"
+            "`/viewnote` - View a specific note\n"
+            "`/deletenote` - Delete a note"
+        ),
+        inline=False
+    )
+
+    # Prefix Commands
+    embed.add_field(
+        name="🔧 Prefix Commands",
+        value=(
+            "`!password [length]` - Generate secure password\n"
+            "`!help` - Show this help message"
+        ),
+        inline=False
+    )
+
+    # Math Operations
+    embed.add_field(
+        name="🧮 Math Operations",
+        value=(
+            "You can also do math by typing expressions like:\n"
+            "`5 + 3` or `10 divide 2`\n"
+            "Then react with the corresponding emoji"
+        ),
+        inline=False
+    )
+
+    embed.set_footer(text="Use /help for slash commands or !help for prefix commands")
+    return embed
+
 @bot.event
 async def on_message(message):
     if message.author.bot:
+        return
+
+    # Check for help command
+    if message.content.startswith('!help'):
+        await message.channel.send(embed=create_help_embed())
         return
 
     # Check for password generator command
@@ -528,6 +584,11 @@ async def myreminders_command(interaction: discord.Interaction):
         
     except Exception as e:
         await interaction.response.send_message(f"❌ Failed to fetch reminders: {str(e)}", ephemeral=True)
+
+@discord.app_commands.allowed_contexts(guilds=True, dms=True, private_channels=True)
+@tree.command(name="help", description="Show all available commands")
+async def help_command(interaction: discord.Interaction):
+    await interaction.response.send_message(embed=create_help_embed())
 
 keep_alive()
 bot.run(TOKEN)
