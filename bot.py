@@ -112,6 +112,64 @@ async def on_message(message):
     if message.author.bot:
         return
 
+    # Check for password generator command
+    if message.content.startswith('!password'):
+        try:
+            # Default values
+            length = 12
+            use_uppercase = True
+            use_numbers = True
+            use_symbols = True
+            
+            # Parse arguments if provided
+            args = message.content.split()
+            if len(args) > 1:
+                try:
+                    length = int(args[1])
+                    if length < 8 or length > 32:
+                        await message.channel.send("❌ Password length must be between 8 and 32 characters!")
+                        return
+                except ValueError:
+                    await message.channel.send("❌ Invalid length! Usage: `!password [length]`")
+                    return
+
+            # Character sets
+            lowercase = 'abcdefghijklmnopqrstuvwxyz'
+            uppercase = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            numbers = '0123456789'
+            symbols = '!@#$%^&*()_+-=[]{}|;:,.<>?'
+
+            # Build character pool
+            chars = lowercase
+            if use_uppercase:
+                chars += uppercase
+            if use_numbers:
+                chars += numbers
+            if use_symbols:
+                chars += symbols
+
+            # Generate password
+            password = ''.join(random.choice(chars) for _ in range(length))
+            
+            # Ensure password meets requirements
+            if use_uppercase and not any(c.isupper() for c in password):
+                password = password[:-1] + random.choice(uppercase)
+            if use_numbers and not any(c.isdigit() for c in password):
+                password = password[:-1] + random.choice(numbers)
+            if use_symbols and not any(c in symbols for c in password):
+                password = password[:-1] + random.choice(symbols)
+
+            # Send password in a code block
+            await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```")
+            
+            # Delete the original command message for security
+            await message.delete()
+            return
+
+        except Exception as e:
+            await message.channel.send(f"❌ Error generating password: {str(e)}")
+            return
+
     content = message.content.lower()
 
     match = re.search(r'(-?\d+(?:\.\d+)?)\s*([+/*x\-]|add|subtract|divide|multiply)\s*(-?\d+(?:\.\d+)?)', content)

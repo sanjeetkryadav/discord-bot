@@ -1,106 +1,59 @@
-# Discord Bot with Math, Notes, and Utility Commands
+# Discord Bot
 
-A versatile Discord bot that provides mathematical calculations, note-taking capabilities, and various utility commands. The bot uses slash commands for easy interaction and includes features like reminders, translations, and random number generation.
+A versatile Discord bot with various utility commands including math operations, reminders, translations, and note-taking capabilities. The bot supports both slash commands and prefix commands for maximum flexibility.
 
 ## Features
 
-### Math Operations
-- Basic arithmetic operations (addition, subtraction, multiplication, division)
-- Supports both slash commands and reaction-based calculations
-- Handles both integer and decimal numbers
-- Shows results in appropriate format (integers for whole numbers, decimals for fractional results)
+- **Math Operations**: Solve basic math expressions using `/math` command
+- **Random Number**: Generate random numbers between two values using `/random`
+- **Reminders**: Set reminders with `/remind` and view active reminders with `/myreminders`
+- **Translation**: Translate text to different languages using `/translate`
+- **Coin Flip**: Flip a coin with `/flip`
+- **Dice Roll**: Roll dice using `/roll` (e.g., "2d6")
+- **Notes System**: 
+  - Create notes with `/note`
+  - List all notes with `/notes`
+  - View specific notes with `/viewnote`
+  - Delete notes with `/deletenote`
+- **Password Generator**: Generate secure random passwords using `!password`
 
-### Note System
-- Create, view, list, and delete personal notes
-- User-specific note IDs (each user's notes start from ID 1)
-- Timestamps in IST (Indian Standard Time)
-- Notes are stored in a SQLite database
+## Command Types
 
-### Utility Commands
-- Random number generation
-- Reminders (sent to DMs)
-- Text translation
-- Coin flip
-- Dice rolling
+### Slash Commands
+All commands except `!password` are implemented as slash commands for better user experience and Discord integration.
 
-## Commands
-
-### Math Commands
-- `/math [expression]` - Solve a math expression (e.g., "5 + 3" or "10 divide 2")
-- Reaction-based math: Type a math expression and react with the corresponding emoji
-
-### Note Commands
-- `/note [title] [content]` - Create a new note
-- `/notes` - List all your notes
-- `/viewnote [note_id]` - View a specific note
-- `/deletenote [note_id]` - Delete a specific note
-
-### Utility Commands
-- `/random [min_value] [max_value]` - Generate a random number between two values
-- `/remind [minutes] [reminder]` - Set a reminder (sent to DMs)
-- `/myreminders` - To view active reminders
-- `/translate [text] [target_language]` - Translate text to another language
-- `/flip` - Flip a coin
-- `/roll [dice]` - Roll dice (e.g., "2d6" for two six-sided dice)
+### Prefix Commands
+- `!password [length]` - Generate a secure random password
+  - Features:
+    - Default length: 12 characters
+    - Customizable length (8-32 characters)
+    - Includes uppercase, lowercase, numbers, and symbols
+    - Ensures password meets security requirements
+    - Command message is automatically deleted for security
+  - Usage:
+    - `!password` - Generate a 12-character password
+    - `!password 16` - Generate a 16-character password
 
 ## Setup
 
 1. Clone the repository
 2. Install required packages:
-```bash
-pip install discord.py python-dotenv googletrans==3.1.0a0 pytz
-```
-
+   ```
+   pip install -r requirements.txt
+   ```
 3. Create a `.env` file with your Discord bot token:
-```
-DISCORD_TOKEN=your_bot_token_here
-```
-
+   ```
+   DISCORD_TOKEN=your_token_here
+   ```
 4. Run the bot:
-```bash
-python bot.py
-```
+   ```
+   python bot.py
+   ```
 
 ## Requirements
-- Python 3.8 or higher
+
+- Python 3.8+
 - discord.py
 - python-dotenv
 - googletrans
 - pytz
-
-## Features in Detail
-
-### Math Operations
-- Supports: +, -, *, /, add, subtract, multiply, divide
-- Handles decimal numbers
-- Shows results in appropriate format
-- Works with both slash commands and reactions
-
-### Note System
-- Personal note storage
-- User-specific note IDs
-- IST timestamps
-- SQLite database storage
-- Secure (users can only access their own notes)
-
-### Reminders
-- Set reminders in minutes
-- Reminders are sent to user's DMs
-- Fallback to channel message if DM fails
-- Clear error messages for DM issues
-
-### Translation
-- Translate text to any language
-- Shows original and translated text
-- Supports all languages available in Google Translate
-
-### Random and Games
-- Random number generation with range
-- Coin flip (Heads/Tails)
-- Dice rolling with custom notation (e.g., 2d6)
-
-## Contributing
-Feel free to submit issues and enhancement requests!
-
-## License
-This project is open source and available under the MIT License.
