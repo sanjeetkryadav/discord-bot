@@ -254,12 +254,17 @@ async def on_message(message):
                 
                 password = ''.join(password_list)
 
-            # Send password in a code block
-            await message.channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```")
-            
-            # Delete the original command message for security
-            await message.delete()
-            return
+            try:
+                # Create DM channel with user
+                dm_channel = await message.author.create_dm()
+                # Send password in DM
+                await dm_channel.send(f"🔐 Generated Password ({length} characters):\n```{password}```")
+                # Send confirmation in the original channel
+                await message.channel.send("✅ Password has been sent to your DMs!")
+            except discord.Forbidden:
+                await message.channel.send("❌ I cannot send you DMs! Please enable DMs from server members.")
+            except Exception as e:
+                await message.channel.send(f"❌ Failed to send DM: {str(e)}")
 
         except Exception as e:
             await message.channel.send(f"❌ Error generating password: {str(e)}")
