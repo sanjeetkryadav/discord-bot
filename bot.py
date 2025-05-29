@@ -218,41 +218,24 @@ async def on_message(message):
             if use_symbols:
                 chars += symbols
 
-            # Generate password
-            password = ''.join(random.choice(chars) for _ in range(length))
+            # Generate password with required characters
+            password_chars = []
             
-            # Ensure password meets requirements by adding required characters if missing
-            required_chars = []
-            if use_uppercase and not any(c.isupper() for c in password):
-                required_chars.append(random.choice(uppercase))
-            if use_numbers and not any(c.isdigit() for c in password):
-                required_chars.append(random.choice(numbers))
-            if use_symbols and not any(c in symbols for c in password):
-                required_chars.append(random.choice(symbols))
+            # Add at least one of each required character type
+            if use_uppercase:
+                password_chars.append(random.choice(uppercase))
+            if use_numbers:
+                password_chars.append(random.choice(numbers))
+            if use_symbols:
+                password_chars.append(random.choice(symbols))
             
-            # If we need to add required characters, replace random positions
-            if required_chars:
-                # Convert password to list for easier manipulation
-                password_list = list(password)
-                # Replace random positions with required characters
-                for char in required_chars:
-                    # Find a position that won't break other requirements
-                    while True:
-                        pos = random.randint(0, len(password_list) - 1)
-                        # Check if replacing this position won't break any requirements
-                        temp_password = password_list.copy()
-                        temp_password[pos] = char
-                        temp_password_str = ''.join(temp_password)
-                        
-                        # Verify all requirements are still met
-                        if (not use_uppercase or any(c.isupper() for c in temp_password_str)) and \
-                           (not use_numbers or any(c.isdigit() for c in temp_password_str)) and \
-                           (not use_symbols or any(c in symbols for c in temp_password_str)) and \
-                           any(c.islower() for c in temp_password_str):
-                            password_list[pos] = char
-                            break
-                
-                password = ''.join(password_list)
+            # Fill the rest with random characters
+            remaining_length = length - len(password_chars)
+            password_chars.extend(random.choice(chars) for _ in range(remaining_length))
+            
+            # Shuffle the password characters
+            random.shuffle(password_chars)
+            password = ''.join(password_chars)
 
             try:
                 # Create DM channel with user
